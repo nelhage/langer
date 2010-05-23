@@ -1,7 +1,7 @@
 udis86=/home/nelhage/sw/udis86
 
 LIBS=-lbfd -L$(udis86)/lib -ludis86
-CFLAGS=-I$(udis86)/include
+CFLAGS=-I$(udis86)/include -g
 SO_LDFLAGS=-nostdlib -fPIC -shared
 
 all: replace-ret preload.so
