@@ -9,5 +9,5 @@ all: replace-ret preload.so
 %: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 
-preload.so: preload.c
+preload.so: preload.c mcount.o
 	$(CC) $(CFLAGS) $(SO_LDFLAGS) $< -o $@
