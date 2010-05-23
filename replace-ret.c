@@ -57,6 +57,9 @@ void do_mark_rets(bfd *abfd, asection *sect, void *data) {
 
     if (!(sect->flags & SEC_CODE))
         return;
+    if (strcmp(sect->symbol->name, ".init") == 0)
+        return;
+
     printf("Scanning %s (at %lx)...\n",
            sect->symbol->name, (uint64_t)sect->vma);
 
@@ -75,7 +78,6 @@ void do_mark_rets(bfd *abfd, asection *sect, void *data) {
             file_ptr fileoff = (sect->filepos + ud.pc
                                 - (uint64_t)sect->vma
                                 - ud_insn_len(&ud));
-            printf("RET (vma == %lx, off = %lx)\n", ud.pc, fileoff);
             add_ret(fileoff);
         }
     }
