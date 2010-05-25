@@ -9,10 +9,9 @@
 struct sigaction old;
 
 struct trace_ent {
-    unsigned long entry : 1;
-    unsigned long ip    : 63;
+    unsigned long ip;
     struct timeval tv;
-};
+} __attribute__((packed));
 
 #define TRACE_BUF_SIZE 4096
 
@@ -27,8 +26,7 @@ void flush_trace_buf() {
 
 void add_trace(int entry, unsigned long ip) __attribute__((regparm(3)));
 void add_trace(int entry, unsigned long ip) {
-    next->entry = entry;
-    next->ip = ip;
+    next->ip = (ip << 1) | !!entry;
     gettimeofday(&next->tv, NULL);
 
     if(++next == trace_buf + TRACE_BUF_SIZE)
