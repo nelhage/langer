@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import struct
+import sys
+import subprocess
+
+trace_entry = struct.Struct("@LLL")
+
+def usage():
+    print >>sys.stdout, "Usage: %s trace.out prog" % (sys.argv[0],)
+
+def main(args):
+    if len(args) < 2:
+        usage()
+        sys.exit(1)
+
+    trace_file = args[0]
+    exe        = args[1]
+    f = open(trace_file, 'r')
+    spc = ''
+
+    p = subprocess.Popen(['addr2line', '-f', '-e', exe],
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE)
+
+    while True:
+        buf = f.read(trace_entry.size)
+        if len(buf) < trace_entry.size:
+            break
+        (ip, s, us) = trace_entry.unpack(buf)
+        is_entry = (ip & 1)
+        ip = ip >> 1
+
+        p.stdin.write("0x%x\n" % (ip,))
+        fn = p.stdout.readline()
+        line = p.stdout.readline()
+
+        if not is_entry:
+            spc = spc[:-1]
+
+        print "[%d.%06d]%s%c %s (0x%x)" % (
+            s, us, spc, ">" if is_entry else "<",
+            fn.strip(), ip)
+
+        if is_entry:
+            spc += ' '
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
