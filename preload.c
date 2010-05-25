@@ -1,12 +1,9 @@
 #define _GNU_SOURCE
 #include <sys/types.h>
 #include <sys/fcntl.h>
-#include <signal.h>
 #include <stdio.h>
 #include <ucontext.h>
 #include <stdlib.h>
-
-struct sigaction old;
 
 struct trace_ent {
     unsigned long ip;
@@ -33,13 +30,12 @@ void add_trace(int entry, unsigned long ip) {
         flush_trace_buf();
 }
 
-void _handle_sigtrap(int s, siginfo_t *sig, void *v) {
-    ucontext_t *ctx = v;
-    greg_t sp = ctx->uc_mcontext.gregs[REG_RSP];
-    greg_t ip = ctx->uc_mcontext.gregs[REG_RIP];
-    ctx->uc_mcontext.gregs[REG_RIP] = *((greg_t*)sp);
-    ctx->uc_mcontext.gregs[REG_RSP] += sizeof(greg_t*);
-    add_trace(0, ip);
+void __cyg_profile_func_enter (void *this_fn, void *call_site) {
+    add_trace(1, (unsigned long)this_fn);
+}
+
+void __cyg_profile_func_exit  (void *this_fn, void *call_site) {
+    add_trace(0, (unsigned long)this_fn);
 }
 
 void _init(void) {
@@ -50,14 +46,8 @@ void _init(void) {
         perror("opening trace.out");
         exit(1);
     }
-
-    struct sigaction act = {
-        .sa_sigaction = _handle_sigtrap
-    };
-    sigaction(SIGTRAP, &act, &old);
 }
 
 void _fini(void) {
-    sigaction(SIGTRAP, &old, NULL);
     close(trace_fd);
 }

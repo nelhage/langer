@@ -1,3 +1,2 @@
 preload.so
-replace-ret
 *.o
