@@ -1,13 +1,10 @@
-udis86=/home/nelhage/sw/udis86
+CFLAGS=-g
+SO_LDFLAGS=-fPIC -shared
 
-LIBS=-lbfd -L$(udis86)/lib -ludis86
-CFLAGS=-I$(udis86)/include -g
-SO_LDFLAGS=-nostdlib -fPIC -shared
-
-all: replace-ret preload.so
+all: preload.so
 
 %: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $< $(LIBS) -o $@
 
-preload.so: preload.c mcount.o
+preload.so: preload.c
 	$(CC) $(CFLAGS) $(SO_LDFLAGS) $< -o $@
